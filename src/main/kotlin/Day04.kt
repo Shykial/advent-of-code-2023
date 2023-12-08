@@ -1,6 +1,4 @@
 object Day04 {
-    private val numbersRegex = Regex("""\d+""")
-
     fun part1(input: List<String>): Int =
         input.asSequence()
             .map { parseCardString(it) }
@@ -28,7 +26,7 @@ object Day04 {
         val (winningNumbers, chosenNumbers) = cardString
             .substringAfter(": ")
             .split(" | ")
-            .map { numbersRegex.findAll(it).map { match -> match.value.toInt() }.toSet() }
+            .map { digitsRegex.findAll(it).map { match -> match.value.toInt() }.toSet() }
         return Scratchcard(winningNumbers, chosenNumbers)
     }
 

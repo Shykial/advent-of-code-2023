@@ -1,5 +1,4 @@
 object Day03 {
-    private val numbersRegex = Regex("""\d+""")
     private val symbolsRegex = Regex("""[^\d.]""")
     private const val GEAR_SYMBOL = '*'
 
@@ -35,7 +34,7 @@ object Day03 {
     private inline fun <T> List<String>.parseEngineNumbersAndCoordinates(
         coordinatesSelector: (line: String) -> List<T>
     ): Pair<List<List<EngineNumber>>, List<List<T>>> = mapIndexed { index, line ->
-        numbersRegex.findAll(line).map {
+        digitsRegex.findAll(line).map {
             EngineNumber(y = index, xRange = it.range, value = it.value.toInt())
         }.toList() to coordinatesSelector(line)
     }.unzip()
