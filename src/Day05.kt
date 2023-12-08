@@ -56,7 +56,7 @@ object Day05 {
     private data class ParsedAlmanacPart2(val seeds: List<LongRange>, val sortedMappings: List<List<MappingRange>>)
 
     private fun ParsedAlmanac.toPart2() = ParsedAlmanacPart2(
-        seeds = seeds.chunked(2).map { (first, second) -> first..<first + second },
+        seeds = seeds.chunked(2) { (first, second) -> first..<first + second },
         sortedMappings = mappings.map { it.sortedBy { mappingRange -> mappingRange.sourceRange.first } },
     )
 

@@ -1,20 +1,31 @@
+import kotlinx.benchmark.gradle.JvmBenchmarkTarget
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "1.9.20"
+    kotlin("jvm") version "1.9.21"
+    kotlin("plugin.allopen") version "1.9.21"
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.10"
+}
+
+allOpen {
+    annotation("org.openjdk.jmh.annotations.State")
 }
 
 repositories {
     mavenCentral()
 }
 
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.10")
+}
+
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 
@@ -27,5 +38,14 @@ tasks {
 
     wrapper {
         gradleVersion = "8.5"
+    }
+}
+
+benchmark {
+    targets {
+        register("main") {
+            this as JvmBenchmarkTarget
+            jmhVersion = "1.37"
+        }
     }
 }
