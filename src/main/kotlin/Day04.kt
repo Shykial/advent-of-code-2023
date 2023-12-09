@@ -1,14 +1,12 @@
 object Day04 {
     fun part1(input: List<String>): Int =
         input.asSequence()
-            .map { parseCardString(it) }
-            .mapNotNull { card -> (card.chosenNumbers intersect card.winningNumbers).size.takeIf { it > 0 } }
+            .mapNotNull { line -> parseCardString(line).matchedNumbersCount().takeIf { it > 0 } }
             .sumOf { 1 shl (it - 1) }
 
     fun part2(input: List<String>): Int {
-        val matchingNumbersCounts = input
-            .map { parseCardString(it) }
-            .map { (it.chosenNumbers intersect it.winningNumbers).size }
+        val matchingNumbersCounts = input.asSequence()
+            .map { parseCardString(it).matchedNumbersCount() }
         val multipliers = mutableMapOf<Int, Int>()
         var cardsCount = 0
 
@@ -31,6 +29,8 @@ object Day04 {
     }
 
     private data class Scratchcard(val winningNumbers: Set<Int>, val chosenNumbers: Set<Int>)
+
+    private fun Scratchcard.matchedNumbersCount() = (winningNumbers intersect chosenNumbers).size
 }
 
 fun main() {
