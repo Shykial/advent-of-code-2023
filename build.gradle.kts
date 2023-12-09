@@ -43,6 +43,33 @@ tasks {
 }
 
 benchmark {
+    configurations {
+        (1..25).forEach { dayNumber ->
+            val paddedDayNumber = dayNumber.toString().padStart(2, '0')
+            val includedPattern = """.*Day$paddedDayNumber.*"""
+            register("day${paddedDayNumber}") {
+                include(includedPattern)
+            }
+            register("day${paddedDayNumber}standard") {
+                include(includedPattern)
+                warmups = 5
+                outputTimeUnit = "ms"
+                mode = "avgt"
+                iterations = 5
+                iterationTime = 5
+                iterationTimeUnit = "sec"
+            }
+            register("day${paddedDayNumber}fast") {
+                include(includedPattern)
+                warmups = 20
+                outputTimeUnit = "ms"
+                iterations = 5
+                iterationTime = 500
+                iterationTimeUnit = "ms"
+                mode = "avgt"
+            }
+        }
+    }
     targets {
         register("benchmarks") {
             this as JvmBenchmarkTarget
