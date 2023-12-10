@@ -1,3 +1,7 @@
+package days
+
+import utils.readInputLines
+
 object Day01 {
     private val stringDigitMappings = mapOf(
         "one" to "1",

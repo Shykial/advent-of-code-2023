@@ -1,3 +1,7 @@
+package days
+
+import utils.readInputLines
+
 object Day02 {
     fun part1(input: List<String>): Int {
         val initialLoad = mapOf(CubeColor.RED to 12, CubeColor.GREEN to 13, CubeColor.BLUE to 14)

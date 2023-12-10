@@ -1,3 +1,8 @@
+package days
+
+import utils.atLeastNMatch
+import utils.readInputLines
+
 private typealias CountedHand = Map<Char, Int>
 
 object Day07 {

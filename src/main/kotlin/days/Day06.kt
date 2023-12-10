@@ -1,3 +1,7 @@
+package days
+
+import utils.digitsRegex
+import utils.readInputLines
 import kotlin.math.nextDown
 import kotlin.math.sqrt
 

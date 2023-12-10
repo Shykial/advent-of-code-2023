@@ -1,3 +1,10 @@
+package days
+
+import utils.digitsRegex
+import utils.readInputLines
+import utils.touches
+import utils.widenedByOne
+
 object Day03 {
     private val symbolsRegex = Regex("""[^\d.]""")
     private const val GEAR_SYMBOL = '*'

@@ -1,3 +1,5 @@
+package utils
+
 val digitsRegex = Regex("""\d+""")
 
 fun readInputLines(name: String) = readResourceStream("inputs/$name.txt").bufferedReader().readLines()

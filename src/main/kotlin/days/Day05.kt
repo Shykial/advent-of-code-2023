@@ -1,3 +1,8 @@
+package days
+
+import utils.rangeIntersect
+import utils.readInput
+
 object Day05 {
     fun part1(input: String): Long {
         val (seeds, mappings) = parseAlmanacString(input)

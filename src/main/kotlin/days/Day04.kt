@@ -1,3 +1,8 @@
+package days
+
+import utils.digitsRegex
+import utils.readInputLines
+
 object Day04 {
     fun part1(input: List<String>): Int =
         input.asSequence()
