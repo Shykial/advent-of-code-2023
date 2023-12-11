@@ -15,8 +15,7 @@ object Day09 {
                 ints.differencesSequence()
                     .map { it.first() }
                     .toList()
-                    .asReversed()
-                    .reduce { acc, n -> n - acc }
+                    .reduceRight { n, acc -> n - acc }
             }
 
     private fun parseLine(line: String) = line.split(" ").map { it.toInt() }
