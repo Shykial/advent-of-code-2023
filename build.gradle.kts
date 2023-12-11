@@ -32,6 +32,7 @@ sourceSets {
 val benchmarksImplementation by configurations
 
 dependencies {
+    implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("com.squareup.okhttp3:okhttp-coroutines:5.0.0-alpha.11")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     benchmarksImplementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.10")
