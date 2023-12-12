@@ -1,95 +1,149 @@
 package days
 
-import days.Day10.PipeChar.Pipe
+import days.Day10.DiagramSymbol.Pipe
+import utils.Coordinates
 import utils.readInputLines
+import utils.takeWhileNotNull
 
 object Day10 {
     fun part1(input: List<String>): Int = parsePipesDiagram(input).findFarthestPoint()
 
-    fun part2(input: List<String>): Int = TODO()
+    fun part2(input: List<String>): Int = parsePipesDiagram(input).countEnclosedTiles()
 
-    private enum class Direction(val xShift: Int = 0, val yShift: Int = 0) {
-        NORTH(yShift = -1), EAST(xShift = 1), SOUTH(yShift = 1), WEST(xShift = -1)
+    private enum class Direction(
+        val xShift: Int = 0,
+        val yShift: Int = 0
+    ) {
+        NORTH(yShift = -1), EAST(xShift = 1), SOUTH(yShift = 1), WEST(xShift = -1);
     }
 
-    private fun Direction.opposite() = when (this) {
-        Direction.NORTH -> Direction.SOUTH
-        Direction.EAST -> Direction.WEST
-        Direction.SOUTH -> Direction.NORTH
-        Direction.WEST -> Direction.EAST
+    private fun Direction.clockwiseOffset(offset: Int) = Direction.entries[(ordinal + offset) % Direction.entries.size]
+    private fun Direction.opposite() = clockwiseOffset(2)
+
+    private operator fun Coordinates.plus(direction: Direction) =
+        Coordinates(y = y + direction.yShift, x = x + direction.xShift)
+
+    private sealed interface DiagramSymbol {
+        data class Pipe(val firstDirection: Direction, val secondDirection: Direction) : DiagramSymbol
+        data object Start : DiagramSymbol
+        data object Ground : DiagramSymbol
     }
 
-    private sealed interface PipeChar {
-        data class Pipe(val first: Direction, val second: Direction) : PipeChar
-        data object Start : PipeChar
-        data object Ground : PipeChar
-    }
+    private operator fun Pipe.contains(direction: Direction) =
+        firstDirection == direction || secondDirection == direction
 
-    private operator fun Pipe.contains(direction: Direction) = first == direction || second == direction
-
-    private fun parsePipeChar(char: Char): PipeChar = when (char) {
+    private fun parsePipeChar(char: Char): DiagramSymbol = when (char) {
         '|' -> Pipe(Direction.NORTH, Direction.SOUTH)
         '-' -> Pipe(Direction.WEST, Direction.EAST)
         'L' -> Pipe(Direction.NORTH, Direction.EAST)
         'J' -> Pipe(Direction.NORTH, Direction.WEST)
         '7' -> Pipe(Direction.SOUTH, Direction.WEST)
         'F' -> Pipe(Direction.EAST, Direction.SOUTH)
-        'S' -> PipeChar.Start
-        else -> PipeChar.Ground
+        'S' -> DiagramSymbol.Start
+        else -> DiagramSymbol.Ground
     }
 
-    private class PipesDiagram(private val pipeChars: List<List<PipeChar>>, startCoordinates: Coordinates) {
-        private val startPipe: PipeOnDiagram
+    private class PipesDiagram(private val diagramSymbols: List<List<DiagramSymbol>>, startCoordinates: Coordinates) {
+        private val startingPipe = PipeOnDiagram(findStartingPipe(startCoordinates), startCoordinates)
 
-        init {
-            val (firstDirection, secondDirection) = Direction.entries.asSequence()
-                .filter { direction ->
-                    pipeChars.getOrNull(startCoordinates.y + direction.yShift)
-                        ?.getOrNull(startCoordinates.x + direction.xShift)
-                        .let { it is Pipe && it.contains(direction.opposite()) }
-                }.take(2).toList()
-            startPipe = PipeOnDiagram(Pipe(firstDirection, secondDirection), startCoordinates.y, startCoordinates.x)
-        }
-
-        fun findFarthestPoint() = generatePipeSequence(startPipe, startPipe.pipe.first)
-            .zip(generatePipeSequence(startPipe, startPipe.pipe.second))
+        fun findFarthestPoint() = getPipeMovesSequence(startingPipe, startingPipe.pipe.firstDirection)
+            .zip(getPipeMovesSequence(startingPipe, startingPipe.pipe.secondDirection))
             .drop(1)
-            .takeWhile { (firstPair, secondPair) -> firstPair.first != secondPair.first }
+            .takeWhile { (first, second) -> first.pipe != second.pipe }
             .count() + 1
 
-        private fun generatePipeSequence(startPipe: PipeOnDiagram, startDirection: Direction) =
-            generateSequence(startPipe to startDirection) { (pipe, direction) ->
-                val newPipe = nextPipe(pipe, direction)
-                newPipe to newPipe.pipe.getNewDirection(direction)
+        fun countEnclosedTiles(): Int {
+            val mainLoopPipeMoves = getMainLoopPipeMoves()
+            val loopTurn = getLoopDirection(mainLoopPipeMoves)
+            return getEnclosedTilesScanningSequence(mainLoopPipeMoves, loopTurn).count()
+        }
+
+        private fun getSymbolOrNull(coordinates: Coordinates) =
+            diagramSymbols.getOrNull(coordinates.y)?.getOrNull(coordinates.x)
+
+        private fun getEnclosedTilesScanningSequence(
+            mainLoopPipeMoves: List<PipeMove>,
+            loopTurn: TurnDirection,
+        ): Sequence<Coordinates> {
+            val mainLoopPipeCoordinates = mainLoopPipeMoves.map { it.pipe.coordinates }.toSet()
+            return mainLoopPipeMoves.asSequence()
+                .flatMap { (pipe, direction) ->
+                    setOf(direction, pipe.pipe.getOtherDirection(direction).opposite()).asSequence()
+                        .map { it.clockwiseOffset(if (loopTurn == TurnDirection.CLOCKWISE) 1 else 3) }
+                        .flatMap { scanningDirection ->
+                            generateSequence(pipe.coordinates) { it + scanningDirection }
+                                .drop(1)
+                                .map { it.takeIf { getSymbolOrNull(it) != null && it !in mainLoopPipeCoordinates } }
+                                .takeWhileNotNull()
+                        }
+                }.distinct()
+        }
+
+        private fun findStartingPipe(startCoordinates: Coordinates) = Direction.entries.asSequence()
+            .filter { direction ->
+                val symbol = getSymbolOrNull(startCoordinates + direction)
+                symbol is Pipe && direction.opposite() in symbol
+            }.take(2).toList()
+            .let { (firstDirection, secondDirection) -> Pipe(firstDirection, secondDirection) }
+
+        fun getMainLoopPipeMoves() = buildList {
+            add(PipeMove(startingPipe, startingPipe.pipe.firstDirection))
+            getPipeMovesSequence(startingPipe, startingPipe.pipe.firstDirection)
+                .drop(1)
+                .takeWhile { (pipe, _) -> pipe != startingPipe }
+                .run(::addAll)
+        }
+
+        private fun getLoopDirection(loopMoves: List<PipeMove>) =
+            loopMoves.asSequence()
+                .filter { (pipe, _) -> pipe.pipe.firstDirection != pipe.pipe.secondDirection.opposite() }
+                .map { (pipe, direction) -> getTurnDirection(direction, pipe.pipe.getOtherDirection(direction)) }
+                .groupingBy { it }
+                .eachCount()
+                .maxBy { it.value }
+                .key
+
+        private fun getTurnDirection(firstDirection: Direction, secondDirection: Direction) =
+            when (secondDirection) {
+                firstDirection.clockwiseOffset(1) -> TurnDirection.CLOCKWISE
+                else -> TurnDirection.ANTICLOCKWISE
             }
 
-        fun Pipe.getNewDirection(leadingDirection: Direction) =
-            if (first.opposite() != leadingDirection) first else second
+        private fun getPipeMovesSequence(startPipe: PipeOnDiagram, startDirection: Direction) =
+            generateSequence(PipeMove(startPipe, startDirection)) { (pipe, direction) ->
+                val newPipe = nextPipe(pipe, direction)
+                PipeMove(newPipe, newPipe.pipe.getOtherDirection(direction.opposite()))
+            }
+
+        private fun Pipe.getOtherDirection(direction: Direction) =
+            firstDirection.takeIf { it != direction } ?: secondDirection
 
         fun nextPipe(oldPipe: PipeOnDiagram, direction: Direction): PipeOnDiagram {
-            val newY = oldPipe.y + direction.yShift
-            val newX = oldPipe.x + direction.xShift
-            return PipeOnDiagram(pipeChars[newY][newX] as Pipe, newY, newX)
+            val newCoordinates = oldPipe.coordinates + direction
+            val newPipe = getSymbolOrNull(newCoordinates)
+                .also { if (it is DiagramSymbol.Start) return startingPipe }
+            return PipeOnDiagram(newPipe as Pipe, newCoordinates)
         }
     }
 
-    private data class Coordinates(val y: Int, val x: Int)
-    private data class PipeOnDiagram(val pipe: Pipe, val y: Int, val x: Int)
+    private data class PipeOnDiagram(val pipe: Pipe, val coordinates: Coordinates)
+    private data class PipeMove(val pipe: PipeOnDiagram, val direction: Direction)
+    private enum class TurnDirection { CLOCKWISE, ANTICLOCKWISE }
 
     private fun parsePipesDiagram(inputLines: List<String>): PipesDiagram {
         lateinit var startCoordinates: Coordinates
-        val pipeChars = inputLines.mapIndexed { yIndex, line ->
+        val diagramSymbols = inputLines.mapIndexed { yIndex, line ->
             line.mapIndexed { xIndex, char ->
-                parsePipeChar(char).also { if (it == PipeChar.Start) startCoordinates = Coordinates(yIndex, xIndex) }
+                parsePipeChar(char)
+                    .also { if (it == DiagramSymbol.Start) startCoordinates = Coordinates(yIndex, xIndex) }
             }
         }
-        return PipesDiagram(pipeChars, startCoordinates)
+        return PipesDiagram(diagramSymbols, startCoordinates)
     }
 }
 
 fun main() {
     val input = readInputLines("Day10")
-    val testInput = readInputLines("Day10_test")
-    println(Day10.part1(testInput))
     println(Day10.part1(input))
+    println(Day10.part2(input))
 }
