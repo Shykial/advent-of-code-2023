@@ -25,6 +25,7 @@ private fun readResourceStream(path: String) =
     requireNotNull(object {}::class.java.classLoader.getResourceAsStream(path)) { "Resource $path not found" }
 
 data class Coordinates(val y: Int, val x: Int)
+data class LongCoordinates(val y: Long, val x: Long)
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Sequence<T?>.takeWhileNotNull() = takeWhile { it != null } as Sequence<T>
