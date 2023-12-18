@@ -1,11 +1,12 @@
 package days
 
 import utils.rangeIntersect
-import utils.readInput
+import utils.readInputLines
+import utils.splitBy
 
 object Day05 {
-    fun part1(input: String): Long {
-        val (seeds, mappings) = parseAlmanacString(input)
+    fun part1(input: List<String>): Long {
+        val (seeds, mappings) = parseAlmanac(input)
         return seeds.minOf { initialValue ->
             mappings.fold(initialValue) { currentValue, mappingRanges ->
                 mappingRanges.firstNotNullOfOrNull { it.getMappingOrNull(currentValue) } ?: currentValue
@@ -13,8 +14,8 @@ object Day05 {
         }
     }
 
-    fun part2(input: String): Long {
-        val (seedRanges, mappings) = parseAlmanacString(input).toPart2()
+    fun part2(input: List<String>): Long {
+        val (seedRanges, mappings) = parseAlmanac(input).toPart2()
         return seedRanges.minOf { seedRange ->
             mappings.fold(sequenceOf(seedRange)) { currentRanges, mappingRanges ->
                 currentRanges.flatMap { range ->
@@ -41,21 +42,20 @@ object Day05 {
         }
     }
 
-    private fun parseAlmanacString(input: String): ParsedAlmanac {
-        val chunks = input.split(System.lineSeparator().repeat(2))
-        val seeds = chunks[0].substringAfter(": ").split(" ").map { it.toLong() }
-        val parsedMappings = parseMappingsChunks(chunks.drop(1))
+    private fun parseAlmanac(inputLines: List<String>): ParsedAlmanac {
+        val chunks = inputLines.splitBy { it.isBlank() }
+        val seeds = chunks[0].single().substringAfter(": ").split(" ").map { it.toLong() }
+        val parsedMappings = chunks.drop(1).map(::parseMappingsChunk)
         return ParsedAlmanac(seeds = seeds, mappings = parsedMappings)
     }
 
-    private fun parseMappingsChunks(chunks: List<String>): List<List<MappingRange>> = chunks.map { chunk ->
-        chunk.split(System.lineSeparator())
+    private fun parseMappingsChunk(chunk: List<String>) =
+        chunk
             .drop(1)
             .map { line ->
                 val (destinationStart, sourceStart, range) = line.split(" ").map { it.toLong() }
                 MappingRange(destinationStart, sourceStart, range)
             }
-    }
 
     private data class ParsedAlmanac(val seeds: List<Long>, val mappings: List<List<MappingRange>>)
     private data class ParsedAlmanacPart2(val seeds: List<LongRange>, val sortedMappings: List<List<MappingRange>>)
@@ -91,7 +91,7 @@ object Day05 {
 }
 
 fun main() {
-    val input = readInput("Day05")
+    val input = readInputLines("Day05")
     println(Day05.part1(input))
     println(Day05.part2(input))
 }
