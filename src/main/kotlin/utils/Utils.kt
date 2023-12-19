@@ -59,3 +59,5 @@ inline fun <T> Sequence<T>.splitBy(crossinline delimiterPredicate: (T) -> Boolea
 fun String.cutAt(index: Int): Pair<String, String> = take(index) to drop(index)
 
 fun String.replaceCharAt(index: Int, newChar: Char) = StringBuilder(this).apply { this[index] = newChar }.toString()
+
+inline fun <T : Any> T?.onNull(block: () -> Unit) = also { if (it == null) block() }
