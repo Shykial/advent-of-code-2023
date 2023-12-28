@@ -2,6 +2,7 @@ package days
 
 import utils.Coordinates
 import utils.Direction
+import utils.get
 import utils.getOrNull
 import utils.plus
 import utils.readInputLines
@@ -9,7 +10,7 @@ import utils.readInputLines
 object Day16 {
     fun part1(input: List<String>): Int {
         val startCoordinates = Coordinates(0, 0)
-        val start = Move(startCoordinates, input[0][0], Direction.EAST)
+        val start = Move(startCoordinates, input[startCoordinates], Direction.EAST)
         return BeamsGrid(input).countEnergizedTiles(start)
     }
 

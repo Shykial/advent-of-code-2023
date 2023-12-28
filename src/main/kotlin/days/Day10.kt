@@ -3,7 +3,9 @@ package days
 import days.Day10.DiagramSymbol.Pipe
 import utils.Coordinates
 import utils.Direction
+import utils.clockwiseOffset
 import utils.getOrNull
+import utils.opposite
 import utils.plus
 import utils.readInputLines
 import utils.takeWhileNotNull
@@ -12,9 +14,6 @@ object Day10 {
     fun part1(input: List<String>): Int = parsePipesDiagram(input).findFarthestPoint()
 
     fun part2(input: List<String>): Int = parsePipesDiagram(input).countEnclosedTiles()
-
-    private fun Direction.clockwiseOffset(offset: Int) = Direction.entries[(ordinal + offset) % Direction.entries.size]
-    private fun Direction.opposite() = clockwiseOffset(2)
 
     private sealed interface DiagramSymbol {
         data class Pipe(val firstDirection: Direction, val secondDirection: Direction) : DiagramSymbol
