@@ -6,6 +6,7 @@ import utils.clockwiseOffset
 import utils.getOrNull
 import utils.plus
 import utils.readInputLines
+import java.util.PriorityQueue
 
 object Day17 {
     fun part1(input: List<String>): Int = parseGrid(input).countMinimalHeatLossAStar()
@@ -20,51 +21,57 @@ object Day17 {
     private class BlocksGrid(private val blocks: List<List<Int>>) {
         private val endCoordinates = Coordinates(blocks.lastIndex, blocks.first().lastIndex)
 
-        private val startingNodes = listOf(Direction.SOUTH, Direction.EAST).map {
+        private val startingNodes = listOf(Direction.EAST, Direction.SOUTH).map {
             BlockNode(move = NodeMove(Coordinates(y = 0, x = 0), it), sameDirectionStreak = 0, totalHeatLoss = 0)
         }
 
-        private val heuristicComparator = compareBy<BlockNode>({ it.heuristicCost() }, { it.hashCode() })
+        private val heuristicComparator = compareBy<BlockNode> { it.heuristicCost() }
 
         fun countMinimalHeatLossAStar(): Int {
-            val openNodes = sortedSetOf(heuristicComparator, startingNodes.first())
+            val openNodes = PriorityQueue(heuristicComparator).apply { add(startingNodes.first()) }
             val visitedStreaksPerMove = hashMapOf<NodeMove, Int>()
 
             while (true) {
-                openNodes.removeFirst()
-                    .also { visitedStreaksPerMove[it.move] = it.sameDirectionStreak }
+                openNodes.remove()
                     .getAvailableNodesPart1()
                     .forEach { node ->
                         if (node.move.coordinates == endCoordinates) return node.totalHeatLoss
                         val seenStreak = visitedStreaksPerMove[node.move]
-                        if (seenStreak == null || seenStreak > node.sameDirectionStreak) openNodes += node
+                        if (seenStreak == null || seenStreak > node.sameDirectionStreak) {
+                            visitedStreaksPerMove[node.move] = node.sameDirectionStreak
+                            openNodes += node
+                        }
                     }
             }
         }
 
         fun countMinimalHeatLossAStarPart2(): Int {
-            val openNodes = sortedSetOf(heuristicComparator).apply { addAll(startingNodes) }
+            val openNodes = PriorityQueue(heuristicComparator).apply { addAll(startingNodes) }
             val visitedStreaksNoWobbling = hashMapOf<NodeMove, Int>()
             val visitedStreaksWobbling = hashMapOf<NodeMove, Int>()
             fun mapForStreak(streak: Int) = if (streak < 4) visitedStreaksNoWobbling else visitedStreaksWobbling
 
             while (true) {
-                openNodes.removeFirst()
-                    .also { mapForStreak(it.sameDirectionStreak)[it.move] = it.sameDirectionStreak }
+                openNodes.remove()
                     .getAvailableNodesPart2()
                     .forEach { node ->
                         if (node.move.coordinates == endCoordinates) {
                             if (node.sameDirectionStreak >= 4) return node.totalHeatLoss
                             return@forEach
                         }
-                        val shouldAddNode = when (val map = mapForStreak(node.sameDirectionStreak)) {
+                        val map = mapForStreak(node.sameDirectionStreak)
+                        val shouldAddNode = when (map) {
                             visitedStreaksNoWobbling -> map[node.move].let { it == null || it < node.sameDirectionStreak }
                             else -> map[node.move].let { it == null || it > node.sameDirectionStreak }
                         }
-                        if (shouldAddNode) openNodes += node
+                        if (shouldAddNode) {
+                            map[node.move] = node.sameDirectionStreak
+                            openNodes += node
+                        }
                     }
             }
         }
+
 
         private fun Coordinates.distanceFromEnd() = endCoordinates.y - y + endCoordinates.x - x
 
@@ -72,7 +79,7 @@ object Day17 {
 
         private data class NodeMove(val coordinates: Coordinates, val direction: Direction)
 
-        private fun BlockNode.heuristicCost() = totalHeatLoss + move.coordinates.distanceFromEnd() * 2
+        private fun BlockNode.heuristicCost() = totalHeatLoss + move.coordinates.distanceFromEnd()
 
         private fun BlockNode.getAvailableNodesPart1(): List<BlockNode> {
             val offsets = when {
