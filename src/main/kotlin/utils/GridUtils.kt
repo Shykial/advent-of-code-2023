@@ -23,3 +23,6 @@ fun List<String>.getOrNull(coordinates: Coordinates) = getOrNull(coordinates.y)?
 
 operator fun <T> List<List<T>>.get(coordinates: Coordinates) = this[coordinates.y][coordinates.x]
 fun <T> List<List<T>>.getOrNull(coordinates: Coordinates) = getOrNull(coordinates.y)?.getOrNull(coordinates.x)
+
+operator fun <T> List<MutableList<T>>.set(coordinates: Coordinates, value: T) =
+    this[coordinates.y].set(coordinates.x, value)

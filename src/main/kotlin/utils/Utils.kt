@@ -58,3 +58,6 @@ fun String.cutAt(index: Int): Pair<String, String> = take(index) to drop(index)
 fun String.replaceCharAt(index: Int, newChar: Char) = StringBuilder(this).apply { this[index] = newChar }.toString()
 
 inline fun <T : Any> T?.onNull(block: () -> Unit) = also { if (it == null) block() }
+
+fun <T> Iterable<T>.mostFrequent() = groupingBy { it }.eachCount().maxBy { it.value }.key
+fun <T> Sequence<T>.mostFrequent() = groupingBy { it }.eachCount().maxBy { it.value }.key

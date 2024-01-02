@@ -72,7 +72,6 @@ object Day17 {
             }
         }
 
-
         private fun Coordinates.distanceFromEnd() = endCoordinates.y - y + endCoordinates.x - x
 
         private data class BlockNode(val move: NodeMove, val sameDirectionStreak: Int, val totalHeatLoss: Int)

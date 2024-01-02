@@ -5,6 +5,7 @@ import utils.Coordinates
 import utils.Direction
 import utils.clockwiseOffset
 import utils.getOrNull
+import utils.mostFrequent
 import utils.opposite
 import utils.plus
 import utils.readInputLines
@@ -87,10 +88,7 @@ object Day10 {
             loopMoves.asSequence()
                 .filter { (pipe, _) -> pipe.pipe.firstDirection != pipe.pipe.secondDirection.opposite() }
                 .map { (pipe, direction) -> getTurnDirection(direction, pipe.pipe.getOtherDirection(direction)) }
-                .groupingBy { it }
-                .eachCount()
-                .maxBy { it.value }
-                .key
+                .mostFrequent()
 
         private fun getTurnDirection(firstDirection: Direction, secondDirection: Direction) =
             when (secondDirection) {
