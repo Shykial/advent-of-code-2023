@@ -40,13 +40,11 @@ object Day11 {
         }
     }
 
-    private fun <T> List<T>.generatePairsSequence(): Sequence<Pair<T, T>> = sequence {
-        val elementsLeft = toMutableList()
-        while (elementsLeft.isNotEmpty()) {
-            val removed = elementsLeft.removeLast()
-            elementsLeft.forEach { yield(removed to it) }
+    private fun <T> List<T>.generatePairsSequence(): Sequence<Pair<T, T>> =
+        (0..<lastIndex).asSequence().flatMap { index ->
+            val element = get(index)
+            (index + 1..lastIndex).asSequence().map { nestedIndex -> element to get(nestedIndex) }
         }
-    }
 }
 
 fun main() {
