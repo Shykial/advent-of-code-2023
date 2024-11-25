@@ -1,10 +1,10 @@
 import kotlinx.benchmark.gradle.JvmBenchmarkTarget
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "1.9.21"
-    kotlin("plugin.allopen") version "1.9.21"
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.10"
+    kotlin("jvm") version "2.0.21"
+    kotlin("plugin.allopen") version "2.0.21"
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.12"
+    id("com.shykial.aoc.inputs.downloader") version "0.0.1"
 }
 
 allOpen {
@@ -15,34 +15,24 @@ repositories {
     mavenCentral()
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-}
-
 kotlin {
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
-    }
+    jvmToolchain(21)
 }
 
 sourceSets {
     register("benchmarks")
 }
 
+downloadAocInputs {
+    sessionCookie { projectDir.resolve("secrets/session-cookie.txt").readText() }
+}
+
 val benchmarksImplementation by configurations
 
 dependencies {
     implementation("org.apache.commons:commons-math3:3.6.1")
-    implementation("com.squareup.okhttp3:okhttp-coroutines:5.0.0-alpha.11")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    benchmarksImplementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.10")
+    benchmarksImplementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.12")
     benchmarksImplementation(sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath)
-}
-
-tasks {
-    wrapper {
-        gradleVersion = "8.5"
-    }
 }
 
 benchmark {

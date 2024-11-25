@@ -3,3 +3,4 @@
 build
 src/**/*.txt
 src/benchmarks
+secrets
