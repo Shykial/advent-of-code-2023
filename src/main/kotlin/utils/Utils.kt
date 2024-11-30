@@ -61,3 +61,23 @@ inline fun <T : Any> T?.onNull(block: () -> Unit) = also { if (it == null) block
 
 fun <T> Iterable<T>.mostFrequent() = groupingBy { it }.eachCount().maxBy { it.value }.key
 fun <T> Sequence<T>.mostFrequent() = groupingBy { it }.eachCount().maxBy { it.value }.key
+
+fun String.repeat(n: Int, separator: Char): String {
+    val self = this
+    return buildString {
+        repeat(n - 1) {
+            append(self)
+            append(separator)
+        }
+        append(self)
+    }
+}
+
+fun <T> List<T>.repeat(n: Int): List<T> {
+    val self = this
+    return buildList {
+        repeat(n) {
+            addAll(self)
+        }
+    }
+}
